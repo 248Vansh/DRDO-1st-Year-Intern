@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DRDO")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+865954226a64b80c6e039213393639eb4a40c842")]
 [assembly: System.Reflection.AssemblyProductAttribute("DRDO")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DRDO")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
