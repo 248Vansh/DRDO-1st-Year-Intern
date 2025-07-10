@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "dgSpecHash": "VlZf5GDhrMQ=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\2garg\\source\\repos\\DRDO\\DRDO\\DRDO.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\2garg\\.nuget\\packages\\esri.arcgisruntime\\200.7.0\\esri.arcgisruntime.200.7.0.nupkg.sha512",
+    "C:\\Users\\2garg\\.nuget\\packages\\esri.arcgisruntime.runtimes.win\\200.7.0\\esri.arcgisruntime.runtimes.win.200.7.0.nupkg.sha512",
+    "C:\\Users\\2garg\\.nuget\\packages\\esri.arcgisruntime.wpf\\200.7.0\\esri.arcgisruntime.wpf.200.7.0.nupkg.sha512",
+    "C:\\Users\\2garg\\.nuget\\packages\\microsoft.netcore.app.runtime.win-x86\\8.0.17\\microsoft.netcore.app.runtime.win-x86.8.0.17.nupkg.sha512",
+    "C:\\Users\\2garg\\.nuget\\packages\\microsoft.windows.sdk.net.ref\\10.0.19041.57\\microsoft.windows.sdk.net.ref.10.0.19041.57.nupkg.sha512",
+    "C:\\Users\\2garg\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.win-x86\\8.0.17\\microsoft.aspnetcore.app.runtime.win-x86.8.0.17.nupkg.sha512",
+    "C:\\Users\\2garg\\.nuget\\packages\\microsoft.netcore.app.runtime.win-arm64\\8.0.17\\microsoft.netcore.app.runtime.win-arm64.8.0.17.nupkg.sha512",
+    "C:\\Users\\2garg\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.win-x64\\8.0.17\\microsoft.aspnetcore.app.runtime.win-x64.8.0.17.nupkg.sha512",
+    "C:\\Users\\2garg\\.nuget\\packages\\microsoft.windowsdesktop.app.runtime.win-arm64\\8.0.17\\microsoft.windowsdesktop.app.runtime.win-arm64.8.0.17.nupkg.sha512",
+    "C:\\Users\\2garg\\.nuget\\packages\\microsoft.windowsdesktop.app.runtime.win-x64\\8.0.17\\microsoft.windowsdesktop.app.runtime.win-x64.8.0.17.nupkg.sha512",
+    "C:\\Users\\2garg\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.win-arm64\\8.0.17\\microsoft.aspnetcore.app.runtime.win-arm64.8.0.17.nupkg.sha512",
+    "C:\\Users\\2garg\\.nuget\\packages\\microsoft.netcore.app.runtime.win-x64\\8.0.17\\microsoft.netcore.app.runtime.win-x64.8.0.17.nupkg.sha512",
+    "C:\\Users\\2garg\\.nuget\\packages\\microsoft.windowsdesktop.app.runtime.win-x86\\8.0.17\\microsoft.windowsdesktop.app.runtime.win-x86.8.0.17.nupkg.sha512"
+  ],
+  "logs": []
+}
