@@ -1,12 +1,14 @@
 ﻿using Esri.ArcGISRuntime.Geometry;
 using Esri.ArcGISRuntime.Mapping;
 using Esri.ArcGISRuntime.Symbology;
+using Esri.ArcGISRuntime.Tasks.Geocoding;
 using Esri.ArcGISRuntime.UI;
 using Esri.ArcGISRuntime.UI.Controls;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -18,7 +20,7 @@ namespace DRDO
         private bool _isUsingStreets = true;
 
         private readonly Dictionary<string, LocationDisplayAutoPanMode> _autoPanModes =
-            new Dictionary<string, LocationDisplayAutoPanMode>
+            new()
             {
                 { "AutoPan Off", LocationDisplayAutoPanMode.Off },
                 { "Re-Center", LocationDisplayAutoPanMode.Recenter },
@@ -26,57 +28,195 @@ namespace DRDO
                 { "Compass", LocationDisplayAutoPanMode.CompassNavigation }
             };
 
+        private readonly Uri _geocodeServiceUri = new("https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer");
+        private LocatorTask _geocoder;
+
         public MainWindow()
         {
             InitializeComponent();
             Loaded += MainWindow_Loaded;
 
-            // AutoPan ComboBox setup
+            // Setup location display autopan options
             AutoPanModeComboBox.ItemsSource = _autoPanModes.Keys;
             AutoPanModeComboBox.SelectedItem = "AutoPan Off";
 
             MyMapView.LocationDisplay.AutoPanModeChanged += (s, e) =>
             {
                 if (MyMapView.LocationDisplay.AutoPanMode == LocationDisplayAutoPanMode.Off)
-                {
                     AutoPanModeComboBox.SelectedItem = "AutoPan Off";
+            };
+
+            Unloaded += (s, e) => MyMapView.LocationDisplay?.DataSource?.StopAsync();
+
+            // Hook internal TextBox's TextChanged event
+            SearchBox.Loaded += (s, e) =>
+            {
+                if (SearchBox.Template.FindName("PART_EditableTextBox", SearchBox) is TextBox innerTextBox)
+                {
+                    innerTextBox.TextChanged += SearchBox_TextChanged;
                 }
             };
 
-            // Optional but good: Stop location tracking when window is unloaded
-            Unloaded += (s, e) =>
-            {
-                MyMapView.LocationDisplay?.DataSource?.StopAsync();
-            };
+            // Initialize LocatorTask
+            _ = InitializeGeocoder();
         }
+
+
+
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            // Ensure overlay collection
+            // Ensure overlay
             if (MyMapView.GraphicsOverlays == null)
-            {
                 MyMapView.GraphicsOverlays = new GraphicsOverlayCollection();
-            }
 
-            // Get or create overlay
             _overlay = MyMapView.GraphicsOverlays.FirstOrDefault() ?? new GraphicsOverlay();
             if (!MyMapView.GraphicsOverlays.Contains(_overlay))
                 MyMapView.GraphicsOverlays.Add(_overlay);
+
+            // Hook map tap for reverse geocoding
+            MyMapView.GeoViewTapped += MyMapView_GeoViewTapped;
+        }
+
+        private async Task InitializeGeocoder()
+        {
+            try
+            {
+                _geocoder = await LocatorTask.CreateAsync(_geocodeServiceUri);
+
+                // ✅ Enable UI elements after successful geocoder load
+                SearchBox.IsEnabled = true;
+                SearchButton.IsEnabled = true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Geocoder initialization failed: {ex.Message}");
+            }
+        }
+
+        private async Task PerformSearch(string query)
+        {
+            try
+            {
+                MyMapView.GraphicsOverlays.Clear();
+
+                var parameters = new GeocodeParameters();
+                var results = await _geocoder.GeocodeAsync(query, parameters);
+                if (results.Count < 1) return;
+
+                var location = results.First().DisplayLocation;
+                Graphic marker = new Graphic(location, new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Cross, Color.Blue, 20));
+
+                GraphicsOverlay resultOverlay = new GraphicsOverlay();
+                resultOverlay.Graphics.Add(marker);
+                MyMapView.GraphicsOverlays.Add(resultOverlay);
+
+                await MyMapView.SetViewpointCenterAsync(location, 100000);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Geocode failed: " + ex.Message);
+            }
+        }
+
+
+        private async void SearchBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (SearchBox.SelectedItem is string selected)
+            {
+                SearchBox.Text = selected;
+                await PerformSearch(selected);
+            }
+        }
+
+        private async void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (!SearchBox.IsKeyboardFocusWithin) return; // Prevent dropdown flicker during auto-select
+            await UpdateSuggestionsAsync(SearchBox.Text);
+        }
+
+
+        private async void SearchBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            await UpdateSuggestionsAsync(SearchBox.Text);
+        }
+
+        private async Task UpdateSuggestionsAsync(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input) || _geocoder == null)
+                return;
+
+            try
+            {
+                var suggestions = await _geocoder.SuggestAsync(input);
+                if (suggestions.Count == 0) return;
+
+                SearchBox.ItemsSource = suggestions.Select(s => s.Label).ToList();
+                SearchBox.IsDropDownOpen = true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Suggestion failed: " + ex.Message);
+            }
+        }
+
+
+
+
+
+
+        // Drawing Controls
+        private void AddPoint_Click(object sender, RoutedEventArgs e) => StartGeometryEditor(GeometryType.Point);
+        private void AddLine_Click(object sender, RoutedEventArgs e) => StartGeometryEditor(GeometryType.Polyline);
+        private void AddPolygon_Click(object sender, RoutedEventArgs e) => StartGeometryEditor(GeometryType.Polygon);
+
+        private void StartGeometryEditor(GeometryType type)
+        {
+            StopDrawing();
+            MyMapView.GeometryEditor.Start(type);
+        }
+
+        private void StopDrawing_Click(object sender, RoutedEventArgs e) => StopDrawing();
+
+        private void StopDrawing()
+        {
+            if (MyMapView.GeometryEditor.IsStarted)
+                MyMapView.GeometryEditor.Stop();
+        }
+
+        private void FinishDrawing_Click(object sender, RoutedEventArgs e)
+        {
+            if (!MyMapView.GeometryEditor.IsStarted) return;
+
+            Geometry geometry = MyMapView.GeometryEditor.Stop();
+            if (geometry == null) return;
+
+            Symbol symbol = geometry.GeometryType switch
+            {
+                GeometryType.Point => new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, Color.Red, 10),
+                GeometryType.Polyline => new SimpleLineSymbol(SimpleLineSymbolStyle.Solid, Color.Blue, 3),
+                GeometryType.Polygon => new SimpleFillSymbol(
+                    SimpleFillSymbolStyle.Solid,
+                    Color.FromArgb(120, 255, 165, 0),
+                    new SimpleLineSymbol(SimpleLineSymbolStyle.Solid, Color.Black, 2)
+                ),
+                _ => null
+            };
+
+            if (symbol != null)
+            {
+                Graphic graphic = new(geometry, symbol);
+                _overlay.Graphics.Add(graphic);
+            }
         }
 
         private void ToggleBasemap_Click(object sender, RoutedEventArgs e)
         {
-            if (_isUsingStreets)
-            {
-                MyMapView.Map.Basemap = new Basemap(BasemapStyle.ArcGISImagery);
-                ToggleBasemapButton.Content = "Switch to Streets";
-            }
-            else
-            {
-                MyMapView.Map.Basemap = new Basemap(BasemapStyle.ArcGISStreets);
-                ToggleBasemapButton.Content = "Switch to Imagery";
-            }
+            MyMapView.Map.Basemap = _isUsingStreets
+                ? new Basemap(BasemapStyle.ArcGISImagery)
+                : new Basemap(BasemapStyle.ArcGISStreets);
 
+            ToggleBasemapButton.Content = _isUsingStreets ? "Switch to Streets" : "Switch to Imagery";
             _isUsingStreets = !_isUsingStreets;
         }
 
@@ -94,8 +234,7 @@ namespace DRDO
                 {
                     try
                     {
-                        Scene globalScene = new Scene(BasemapStyle.ArcGISImageryStandard);
-                        MySceneView.Scene = globalScene;
+                        MySceneView.Scene = new Scene(BasemapStyle.ArcGISImageryStandard);
                     }
                     catch (Exception ex)
                     {
@@ -113,10 +252,8 @@ namespace DRDO
         private void AutoPanModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (AutoPanModeComboBox.SelectedItem != null)
-            {
                 MyMapView.LocationDisplay.AutoPanMode =
                     _autoPanModes[AutoPanModeComboBox.SelectedItem.ToString()];
-            }
         }
 
         private async void StartStopButton_Click(object sender, RoutedEventArgs e)
@@ -124,85 +261,55 @@ namespace DRDO
             try
             {
                 if (MyMapView.LocationDisplay.IsEnabled)
-                {
                     await MyMapView.LocationDisplay.DataSource.StopAsync();
-                }
                 else
-                {
                     await MyMapView.LocationDisplay.DataSource.StartAsync();
-                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Error");
-            }
-            finally
-            {
-                StartStopButton.Content = MyMapView.LocationDisplay.IsEnabled ? "Stop" : "Start";
-            }
-        }
-
-        private void AddPoint_Click(object sender, RoutedEventArgs e)
-        {
-            StopDrawing();
-            MyMapView.GeometryEditor.Start(GeometryType.Point);
-        }
-
-        private void AddLine_Click(object sender, RoutedEventArgs e)
-        {
-            StopDrawing();
-            MyMapView.GeometryEditor.Start(GeometryType.Polyline);
-        }
-
-        private void AddPolygon_Click(object sender, RoutedEventArgs e)
-        {
-            StopDrawing();
-            MyMapView.GeometryEditor.Start(GeometryType.Polygon);
-        }
-
-        private void StopDrawing_Click(object sender, RoutedEventArgs e)
-        {
-            StopDrawing();
-        }
-
-        private void StopDrawing()
-        {
-            if (MyMapView.GeometryEditor.IsStarted)
-            {
-                MyMapView.GeometryEditor.Stop();
-            }
-        }
-
-        private void FinishDrawing_Click(object sender, RoutedEventArgs e)
-        {
-            if (!MyMapView.GeometryEditor.IsStarted) return;
-
-            Geometry geometry = MyMapView.GeometryEditor.Stop();
-            if (geometry == null) return;
-
-            Symbol symbol = null;
-
-            switch (geometry.GeometryType)
-            {
-                case GeometryType.Point:
-                    symbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, Color.Red, 10);
-                    break;
-                case GeometryType.Polyline:
-                    symbol = new SimpleLineSymbol(SimpleLineSymbolStyle.Solid, Color.Blue, 3);
-                    break;
-                case GeometryType.Polygon:
-                    var outline = new SimpleLineSymbol(SimpleLineSymbolStyle.Solid, Color.Black, 2);
-                    symbol = new SimpleFillSymbol(SimpleFillSymbolStyle.Solid, Color.FromArgb(120, 255, 165, 0), outline);
-                    break;
+                MessageBox.Show("Location Error: " + ex.Message);
             }
 
-            if (symbol != null)
+            StartStopButton.Content = MyMapView.LocationDisplay.IsEnabled ? "Stop" : "Start";
+        }
+
+        // --- Geocoding Features ---
+        private async void SearchButton_Click(object sender, RoutedEventArgs e)
+        {
+            string query = SearchBox.Text;
+            if (string.IsNullOrWhiteSpace(query) || _geocoder == null)
+                return;
+
+            await PerformSearch(query);
+        }
+        
+
+
+        // --- Optional Step 7: Reverse Geocoding on Tap ---
+        private async void MyMapView_GeoViewTapped(object sender, GeoViewInputEventArgs e)
+        {
+            try
             {
-                var graphic = new Graphic(geometry, symbol);
-                _overlay.Graphics.Add(graphic);
+                var graphicsResults = await MyMapView.IdentifyGraphicsOverlaysAsync(e.Position, 10, false);
+                if (graphicsResults.Count < 1) return;
+
+                var results = await _geocoder.ReverseGeocodeAsync(e.Location);
+                if (results.Count < 1) return;
+
+                var address = results.First();
+                string title = address.Attributes.ContainsKey("City") ? address.Attributes["City"].ToString() : "Location";
+                string details = address.Label;
+
+                CalloutDefinition callout = new(title, details);
+                MyMapView.ShowCalloutAt(e.Location, callout);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Reverse Geocode failed: " + ex.Message);
             }
         }
     }
 }
+
 
 
