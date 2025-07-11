@@ -6,37 +6,55 @@
         xmlns:esri="http://schemas.esri.com/arcgis/runtime/2013"
         xmlns:local="clr-namespace:DRDO"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="600" Width="1000">
+
     <Window.Resources>
         <local:MapViewModel x:Key="MapViewModel" />
     </Window.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Buttons -->
-        <StackPanel Orientation="Horizontal" Margin="5">
-            <Button Content="Draw Point" Click="AddPoint_Click" Margin="5"/>
-            <Button Content="Draw Line" Click="AddLine_Click" Margin="5"/>
-            <Button Content="Draw Polygon" Click="AddPolygon_Click" Margin="5"/>
-            <Button Content="Stop And Clear Drawing" Click="StopDrawing_Click" Margin="5"/>
-            <Button x:Name="ToggleBasemapButton" Content="Switch to Imagery" Click="ToggleBasemap_Click" Margin="5"/>
-            <Button x:Name="SceneToggleButton" Content="Show 3D Scene" Click="ToggleScene_Click" Margin="5"/>
-        </StackPanel>
+        <!-- Toolbar Layout -->
+        <Grid Grid.Row="0" Margin="5">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <!-- Scene-->
+            <!-- Drawing & Map Buttons -->
+            <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,5">
+                <Button Content="Draw Point" Click="AddPoint_Click" Margin="5"/>
+                <Button Content="Draw Line" Click="AddLine_Click" Margin="5"/>
+                <Button Content="Draw Polygon" Click="AddPolygon_Click" Margin="5"/>
+                <Button Content="Stop And Clear Drawing" Click="StopDrawing_Click" Margin="5"/>
+                <Button x:Name="ToggleBasemapButton" Content="Switch to Imagery" Click="ToggleBasemap_Click" Margin="5"/>
+                <Button x:Name="SceneToggleButton" Content="Show 3D Scene" Click="ToggleScene_Click" Margin="5"/>
+            </StackPanel>
+
+            <!-- Location Controls -->
+            <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="5,0,0,5">
+                <ComboBox x:Name="AutoPanModeComboBox"
+                          Width="150"
+                          SelectionChanged="AutoPanModeComboBox_SelectionChanged"
+                          Margin="0,0,10,0"/>
+                <Button x:Name="StartStopButton" Content="Start" Width="75" Click="StartStopButton_Click"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- SceneView -->
         <esri:SceneView x:Name="MySceneView"
-                Grid.Row="1"
-                Visibility="Collapsed" />
+                        Grid.Row="1"
+                        Visibility="Collapsed"/>
 
-
-        <!-- Map -->
+        <!-- MapView -->
         <esri:MapView x:Name="MyMapView"
-              Grid.Row="1"
-              Map="{Binding Map, Source={StaticResource MapViewModel}}"
-              GraphicsOverlays="{Binding GraphicsOverlays, Source={StaticResource MapViewModel}}" />
-
+                      Grid.Row="1"
+                      Map="{Binding Map, Source={StaticResource MapViewModel}}"
+                      GraphicsOverlays="{Binding GraphicsOverlays, Source={StaticResource MapViewModel}}"/>
     </Grid>
 </Window>
+
