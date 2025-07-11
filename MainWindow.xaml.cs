@@ -9,6 +9,9 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using Esri.ArcGISRuntime.Portal;
+using Esri.ArcGISRuntime.Mapping;
+
 
 namespace DRDO
 {
@@ -57,6 +60,40 @@ namespace DRDO
 
             _isUsingStreets = !_isUsingStreets;
         }
+
+        private async void ToggleScene_Click(object sender, RoutedEventArgs e)
+        {
+            if (MySceneView.Visibility == Visibility.Visible)
+            {
+                // Switch to 2D map view
+                MySceneView.Visibility = Visibility.Collapsed;
+                MyMapView.Visibility = Visibility.Visible;
+                SceneToggleButton.Content = "Show 3D Scene";
+            }
+            else
+            {
+                // Switch to 3D scene view
+                if (MySceneView.Scene == null)
+                {
+                    try
+                    {
+                        Scene globalScene = new Scene(BasemapStyle.ArcGISImageryStandard);
+                        MySceneView.Scene = globalScene;
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Failed to load 3D scene: " + ex.Message);
+                        return;
+                    }
+                }
+
+                MyMapView.Visibility = Visibility.Collapsed;
+                MySceneView.Visibility = Visibility.Visible;
+                SceneToggleButton.Content = "Show 2D Map";
+            }
+        }
+
+
 
 
 
