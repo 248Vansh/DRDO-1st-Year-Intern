@@ -22,6 +22,7 @@
             <Button Content="Draw Line" Click="AddLine_Click" Margin="5"/>
             <Button Content="Draw Polygon" Click="AddPolygon_Click" Margin="5"/>
             <Button Content="Stop And Clear Drawing" Click="StopDrawing_Click" Margin="5"/>
+            <Button x:Name="ToggleBasemapButton" Content="Switch to Imagery" Click="ToggleBasemap_Click" Margin="5"/>
         </StackPanel>
 
         <!-- Map -->

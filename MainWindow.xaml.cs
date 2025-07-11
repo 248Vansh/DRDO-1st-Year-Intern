@@ -1,4 +1,5 @@
 ﻿using Esri.ArcGISRuntime.Geometry;
+using Esri.ArcGISRuntime.Mapping;
 using Esri.ArcGISRuntime.Symbology;
 using Esri.ArcGISRuntime.UI;
 using Esri.ArcGISRuntime.UI.Controls;
@@ -38,6 +39,26 @@ namespace DRDO
                 MyMapView.GraphicsOverlays.Add(_overlay);
             }
         }
+
+        private bool _isUsingStreets = true;
+
+        private void ToggleBasemap_Click(object sender, RoutedEventArgs e)
+        {
+            if (_isUsingStreets)
+            {
+                MyMapView.Map.Basemap = new Basemap(BasemapStyle.ArcGISImagery);
+                ToggleBasemapButton.Content = "Switch to Streets";
+            }
+            else
+            {
+                MyMapView.Map.Basemap = new Basemap(BasemapStyle.ArcGISStreets);
+                ToggleBasemapButton.Content = "Switch to Imagery";
+            }
+
+            _isUsingStreets = !_isUsingStreets;
+        }
+
+
 
 
         private void AddPoint_Click(object sender, RoutedEventArgs e)
