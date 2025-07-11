@@ -12,63 +12,66 @@
         <local:MapViewModel x:Key="MapViewModel" />
     </Window.Resources>
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <!-- Row 0: Drawing + Scene -->
-            <RowDefinition Height="Auto"/>
-            <!-- Row 1: Location Display -->
-            <RowDefinition Height="Auto"/>
-            <!-- Row 2: Geocode Search -->
-            <RowDefinition Height="*"/>
-            <!-- Row 3: Map or Scene View -->
-        </Grid.RowDefinitions>
+    
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-        <!-- Drawing and Scene Buttons -->
-        <StackPanel Orientation="Horizontal" Margin="5" Grid.Row="0" Panel.ZIndex="1">
-            <Button Content="Draw Point" Click="AddPoint_Click" Margin="5"/>
-            <Button Content="Draw Line" Click="AddLine_Click" Margin="5"/>
-            <Button Content="Draw Polygon" Click="AddPolygon_Click" Margin="5"/>
-            <Button Content="Stop And Clear Drawing" Click="StopDrawing_Click" Margin="5"/>
-            <Button x:Name="ToggleBasemapButton" Content="Switch to Imagery" Click="ToggleBasemap_Click" Margin="5"/>
-            <Button x:Name="SceneToggleButton" Content="Show 3D Scene" Click="ToggleScene_Click" Margin="5"/>
-        </StackPanel>
+            <!-- Drawing and Scene Buttons -->
+            <StackPanel Orientation="Horizontal" Margin="5" Grid.Row="0" Panel.ZIndex="1">
+                <Button Content="Draw Point" Click="AddPoint_Click" Margin="5"/>
+                <Button Content="Draw Line" Click="AddLine_Click" Margin="5"/>
+                <Button Content="Draw Polygon" Click="AddPolygon_Click" Margin="5"/>
+                <Button Content="Stop And Clear Drawing" Click="StopDrawing_Click" Margin="5"/>
+                <Button x:Name="ToggleBasemapButton" Content="Switch to Imagery" Click="ToggleBasemap_Click" Margin="5"/>
+                <Button x:Name="SceneToggleButton" Content="Show 3D Scene" Click="ToggleScene_Click" Margin="5"/>
+            </StackPanel>
 
-        <!-- Location Controls -->
-        <StackPanel Orientation="Horizontal" Margin="5" Grid.Row="1" Panel.ZIndex="1">
-            <ComboBox x:Name="AutoPanModeComboBox" Width="150" SelectionChanged="AutoPanModeComboBox_SelectionChanged" Margin="0,0,10,0"/>
-            <Button x:Name="StartStopButton" Content="Start" Width="75" Click="StartStopButton_Click"/>
-        </StackPanel>
+            <!-- Location Controls -->
+            <StackPanel Orientation="Horizontal" Margin="5" Grid.Row="1" Panel.ZIndex="1">
+                <ComboBox x:Name="AutoPanModeComboBox" Width="150" SelectionChanged="AutoPanModeComboBox_SelectionChanged" Margin="0,0,10,0"/>
+                <Button x:Name="StartStopButton" Content="Start" Width="75" Click="StartStopButton_Click"/>
+            </StackPanel>
 
-        <!-- Geocode Search Controls -->
-        <StackPanel Orientation="Horizontal" Margin="5" Grid.Row="2">
-            <ComboBox x:Name="SearchBox"
-          Width="300"
-          Height="25"
-          IsEditable="True"
-          IsTextSearchEnabled="False"
-          StaysOpenOnEdit="True"
-          IsEnabled="False"
-          TextSearch.TextPath="Label"
-          SelectionChanged="SearchBox_SelectionChanged"
-          LostFocus="SearchBox_LostFocus"/>
-            <Button x:Name="SearchButton" Content="Search Address" Click="SearchButton_Click" Width="150" Height="25" Margin="10,0,0,0" IsEnabled="False"/>
-        </StackPanel>
+            <!-- Geocode Search -->
+            <StackPanel Orientation="Horizontal" Margin="5" Grid.Row="2">
+                <ComboBox x:Name="SearchBox"
+                  Width="300"
+                  Height="25"
+                  IsEditable="True"
+                  IsTextSearchEnabled="False"
+                  StaysOpenOnEdit="True"
+                  IsEnabled="False"
+                  TextSearch.TextPath="Label"
+                  SelectionChanged="SearchBox_SelectionChanged"
+                  LostFocus="SearchBox_LostFocus"/>
+                <Button x:Name="SearchButton" Content="Search Address" Click="SearchButton_Click" Width="150" Height="25" Margin="10,0,0,0" IsEnabled="False"/>
+                <Button Content="Find Route" Click="SolveRoute_Click" Width="100" Height="25" Margin="10,0,0,0"/>
+            </StackPanel>
 
+            <!-- Directions List -->
+            <ListBox x:Name="DirectionsListBox" Grid.Row="3" Height="100" Margin="5" />
 
-        <!-- Scene View -->
-        <esri:SceneView x:Name="MySceneView"
-                        Grid.Row="3"
-                        Visibility="Collapsed"
-                        Panel.ZIndex="0" />
+            <!-- Scene View -->
+            <esri:SceneView x:Name="MySceneView"
+                    Grid.Row="4"
+                    Visibility="Collapsed"
+                    Panel.ZIndex="0" />
 
-        <!-- Map View -->
-        <esri:MapView x:Name="MyMapView"
-                      Grid.Row="3"
-                      Panel.ZIndex="0"
-                      Map="{Binding Map, Source={StaticResource MapViewModel}}"
-                      GraphicsOverlays="{Binding GraphicsOverlays, Source={StaticResource MapViewModel}}" />
-    </Grid>
+            <!-- Map View -->
+            <esri:MapView x:Name="MyMapView"
+                  Grid.Row="4"
+                  Panel.ZIndex="0"
+                  Map="{Binding Map, Source={StaticResource MapViewModel}}"
+                  GraphicsOverlays="{Binding GraphicsOverlays, Source={StaticResource MapViewModel}}" />
+        </Grid>
+
+    
 </Window>
 
 

@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using Esri.ArcGISRuntime.Tasks.NetworkAnalysis;
 
 namespace DRDO
 {
@@ -18,6 +19,9 @@ namespace DRDO
     {
         private GraphicsOverlay _overlay;
         private bool _isUsingStreets = true;
+
+        private MapPoint _startPoint;
+        private MapPoint _endPoint;
 
         private readonly Dictionary<string, LocationDisplayAutoPanMode> _autoPanModes =
             new()
@@ -78,6 +82,61 @@ namespace DRDO
             MyMapView.GeoViewTapped += MyMapView_GeoViewTapped;
         }
 
+        private readonly Uri _routeServiceUri = new Uri("https://route.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World");
+
+        // Find Route Button Click Handler
+        private async void SolveRoute_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_startPoint == null || _endPoint == null)
+                {
+                    MessageBox.Show("Please search and select both start and end addresses.");
+                    return;
+                }
+
+                var stops = new List<Stop>
+        {
+            new Stop(_startPoint),
+            new Stop(_endPoint)
+        };
+
+                RouteTask routeTask = await RouteTask.CreateAsync(_routeServiceUri);
+                RouteParameters routeParams = await routeTask.CreateDefaultParametersAsync();
+
+                routeParams.ReturnStops = true;
+                routeParams.ReturnDirections = true;
+                routeParams.SetStops(stops);
+
+                RouteResult result = await routeTask.SolveRouteAsync(routeParams);
+                Route route = result.Routes.FirstOrDefault();
+                if (route == null)
+                {
+                    MessageBox.Show("No route found.");
+                    return;
+                }
+
+                // Remove existing polylines
+                for (int i = _overlay.Graphics.Count - 1; i >= 0; i--)
+                {
+                    if (_overlay.Graphics[i].Geometry is Polyline)
+                        _overlay.Graphics.RemoveAt(i);
+                }
+
+                var routeGraphic = new Graphic(route.RouteGeometry,
+                    new SimpleLineSymbol(SimpleLineSymbolStyle.Solid, Color.Purple, 5));
+                _overlay.Graphics.Add(routeGraphic);
+
+                await MyMapView.SetViewpointGeometryAsync(route.RouteGeometry, 50);
+                DirectionsListBox.ItemsSource = route.DirectionManeuvers.Select(d => d.DirectionText);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Route failed: " + ex.Message);
+            }
+        }
+
+
         private async Task InitializeGeocoder()
         {
             try
@@ -98,18 +157,28 @@ namespace DRDO
         {
             try
             {
-                MyMapView.GraphicsOverlays.Clear();
-
                 var parameters = new GeocodeParameters();
                 var results = await _geocoder.GeocodeAsync(query, parameters);
                 if (results.Count < 1) return;
 
                 var location = results.First().DisplayLocation;
-                Graphic marker = new Graphic(location, new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Cross, Color.Blue, 20));
 
-                GraphicsOverlay resultOverlay = new GraphicsOverlay();
-                resultOverlay.Graphics.Add(marker);
-                MyMapView.GraphicsOverlays.Add(resultOverlay);
+                // Decide whether it's a start or end
+                if (_startPoint == null)
+                {
+                    _startPoint = location;
+                    AddMarker(location, Color.Green, "Start");
+                }
+                else if (_endPoint == null)
+                {
+                    _endPoint = location;
+                    AddMarker(location, Color.Red, "End");
+                }
+                else
+                {
+                    MessageBox.Show("Start and End already set. Click 'Stop And Clear Drawing' to reset.");
+                    return;
+                }
 
                 await MyMapView.SetViewpointCenterAsync(location, 100000);
             }
@@ -118,6 +187,16 @@ namespace DRDO
                 MessageBox.Show("Geocode failed: " + ex.Message);
             }
         }
+
+
+        private void AddMarker(MapPoint point, Color color, string label)
+        {
+            var symbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle.Circle, color, 15);
+            var graphic = new Graphic(point, symbol);
+            graphic.Attributes["Label"] = label;
+            _overlay.Graphics.Add(graphic);
+        }
+
 
 
         private async void SearchBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -180,9 +259,13 @@ namespace DRDO
 
         private void StopDrawing()
         {
-            if (MyMapView.GeometryEditor.IsStarted)
-                MyMapView.GeometryEditor.Stop();
+            MyMapView.GeometryEditor.Stop();
+            _overlay.Graphics.Clear();
+            _startPoint = null;
+            _endPoint = null;
+            DirectionsListBox.ItemsSource = null;
         }
+
 
         private void FinishDrawing_Click(object sender, RoutedEventArgs e)
         {
