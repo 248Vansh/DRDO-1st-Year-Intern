@@ -6,72 +6,116 @@
         xmlns:esri="http://schemas.esri.com/arcgis/runtime/2013"
         xmlns:local="clr-namespace:DRDO"
         mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="1000">
+        Title="DRDO GIS Dashboard" Height="700" Width="1200"
+        Background="#FAFAFA"
+        FontFamily="Segoe UI"
+        FontSize="14">
 
     <Window.Resources>
-        <local:MapViewModel x:Key="MapViewModel" />
+        <local:MapViewModel x:Key="MapViewModel"/>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <!-- Modern Button Style -->
+        <Style x:Key="ModernButton" TargetType="Button">
+            <Setter Property="Background" Value="#0078D7"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Margin" Value="5,0"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Card-like Panel -->
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="5" ShadowDepth="1" Opacity="0.2"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
-    
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-            <!-- Drawing and Scene Buttons -->
-            <StackPanel Orientation="Horizontal" Margin="5" Grid.Row="0" Panel.ZIndex="1">
-                <Button Content="Draw Point" Click="AddPoint_Click" Margin="5"/>
-                <Button Content="Draw Line" Click="AddLine_Click" Margin="5"/>
-                <Button Content="Draw Polygon" Click="AddPolygon_Click" Margin="5"/>
-                <Button Content="Stop And Clear Drawing" Click="StopDrawing_Click" Margin="5"/>
-                <Button x:Name="ToggleBasemapButton" Content="Switch to Imagery" Click="ToggleBasemap_Click" Margin="5"/>
-                <Button x:Name="SceneToggleButton" Content="Show 3D Scene" Click="ToggleScene_Click" Margin="5"/>
+        <!-- Drawing and Scene Tools -->
+        <Border Style="{StaticResource Card}" Grid.Row="0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                <Button Content="Draw Point" Click="AddPoint_Click" Style="{StaticResource ModernButton}"/>
+                <Button Content="Draw Line" Click="AddLine_Click" Style="{StaticResource ModernButton}"/>
+                <Button Content="Draw Polygon" Click="AddPolygon_Click" Style="{StaticResource ModernButton}"/>
+                <Button Content="Stop and Clear" Click="StopDrawing_Click" Style="{StaticResource ModernButton}"/>
+                <Button x:Name="ToggleBasemapButton" Content="Switch to Imagery" Click="ToggleBasemap_Click" Style="{StaticResource ModernButton}"/>
+                <Button x:Name="SceneToggleButton" Content="Show 3D Scene" Click="ToggleScene_Click" Style="{StaticResource ModernButton}"/>
             </StackPanel>
+        </Border>
 
-            <!-- Location Controls -->
-            <StackPanel Orientation="Horizontal" Margin="5" Grid.Row="1" Panel.ZIndex="1">
-                <ComboBox x:Name="AutoPanModeComboBox" Width="150" SelectionChanged="AutoPanModeComboBox_SelectionChanged" Margin="0,0,10,0"/>
-                <Button x:Name="StartStopButton" Content="Start" Width="75" Click="StartStopButton_Click"/>
+
+        <!-- Location Display Controls -->
+        <Border Style="{StaticResource Card}" Grid.Row="1">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                <ComboBox x:Name="AutoPanModeComboBox" Width="200" Margin="0,0,10,0" SelectionChanged="AutoPanModeComboBox_SelectionChanged"/>
+                <Button x:Name="StartStopButton" Content="Start" Width="100" Click="StartStopButton_Click" Style="{StaticResource ModernButton}"/>
             </StackPanel>
+        </Border>
 
-            <!-- Geocode Search -->
-            <StackPanel Orientation="Horizontal" Margin="5" Grid.Row="2">
+
+        <!-- Search and Route -->
+        <Border Style="{StaticResource Card}" Grid.Row="2">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                 <ComboBox x:Name="SearchBox"
-                  Width="300"
-                  Height="25"
+                  Width="350"
+                  Height="28"
                   IsEditable="True"
                   IsTextSearchEnabled="False"
                   StaysOpenOnEdit="True"
-                  IsEnabled="False"
                   TextSearch.TextPath="Label"
                   SelectionChanged="SearchBox_SelectionChanged"
-                  LostFocus="SearchBox_LostFocus"/>
-                <Button x:Name="SearchButton" Content="Search Address" Click="SearchButton_Click" Width="150" Height="25" Margin="10,0,0,0" IsEnabled="False"/>
-                <Button Content="Find Route" Click="SolveRoute_Click" Width="100" Height="25" Margin="10,0,0,0"/>
+                  LostFocus="SearchBox_LostFocus"
+                  IsEnabled="False"
+                  Margin="0,0,10,0"/>
+                <Button x:Name="SearchButton" Content="Search Address" Click="SearchButton_Click" Width="150" Height="28" Style="{StaticResource ModernButton}" IsEnabled="False"/>
+                <Button Content="Find Route" Click="SolveRoute_Click" Width="120" Height="28" Style="{StaticResource ModernButton}" Margin="10,0,0,0"/>
             </StackPanel>
+        </Border>
 
-            <!-- Directions List -->
-            <ListBox x:Name="DirectionsListBox" Grid.Row="3" Height="100" Margin="5" />
 
-            <!-- Scene View -->
-            <esri:SceneView x:Name="MySceneView"
-                    Grid.Row="4"
-                    Visibility="Collapsed"
-                    Panel.ZIndex="0" />
+        <!-- Route Results Panel (Initially Collapsed) -->
+        <StackPanel x:Name="RoutePanel" Grid.Row="3" Visibility="Collapsed" Margin="0,5,0,0">
+            <TextBlock Text="Turn-by-Turn Directions:" FontWeight="Bold" FontSize="14" Margin="5"/>
+            <ListBox x:Name="DirectionsListBox" Height="100" Margin="5"/>
+        </StackPanel>
 
-            <!-- Map View -->
+        <!-- Map and Scene View -->
+        <Grid Grid.Row="4">
+            <esri:SceneView x:Name="MySceneView" Visibility="Collapsed" Scene="{x:Null}"/>
             <esri:MapView x:Name="MyMapView"
-                  Grid.Row="4"
-                  Panel.ZIndex="0"
-                  Map="{Binding Map, Source={StaticResource MapViewModel}}"
-                  GraphicsOverlays="{Binding GraphicsOverlays, Source={StaticResource MapViewModel}}" />
+                          Map="{Binding Map, Source={StaticResource MapViewModel}}"
+                          GraphicsOverlays="{Binding GraphicsOverlays, Source={StaticResource MapViewModel}}"/>
         </Grid>
-
-    
+    </Grid>
 </Window>
 
 

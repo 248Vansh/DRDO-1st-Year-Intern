@@ -116,7 +116,6 @@ namespace DRDO
                     return;
                 }
 
-                // Remove existing polylines
                 for (int i = _overlay.Graphics.Count - 1; i >= 0; i--)
                 {
                     if (_overlay.Graphics[i].Geometry is Polyline)
@@ -129,12 +128,16 @@ namespace DRDO
 
                 await MyMapView.SetViewpointGeometryAsync(route.RouteGeometry, 50);
                 DirectionsListBox.ItemsSource = route.DirectionManeuvers.Select(d => d.DirectionText);
+
+                // ✅ Show the directions panel (new XAML element)
+                RoutePanel.Visibility = Visibility.Visible;
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Route failed: " + ex.Message);
             }
         }
+
 
 
         private async Task InitializeGeocoder()
@@ -264,7 +267,11 @@ namespace DRDO
             _startPoint = null;
             _endPoint = null;
             DirectionsListBox.ItemsSource = null;
+
+            // ✅ Hide route panel on reset
+            RoutePanel.Visibility = Visibility.Collapsed;
         }
+
 
 
         private void FinishDrawing_Click(object sender, RoutedEventArgs e)
