@@ -61,8 +61,29 @@ namespace DRDO
                 }
             };
 
-            // Initialize LocatorTask
-            _ = InitializeGeocoder();
+        }
+
+        public async Task PostLoginInitializeAsync()
+        {
+            try
+            {
+                // Set the map only after login
+                MyMapView.Map = new Map(BasemapStyle.ArcGISStreets);
+
+                // Add graphics overlay
+                _overlay = new GraphicsOverlay();
+                MyMapView.GraphicsOverlays.Add(_overlay);
+
+                // Initialize services now
+                await InitializeGeocoder();
+
+                // Enable GPS
+                await MyMapView.LocationDisplay?.DataSource?.StartAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Post-login initialization failed: " + ex.Message);
+            }
         }
 
 
@@ -165,7 +186,6 @@ namespace DRDO
                 if (results.Count < 1) return;
 
                 var location = results.First().DisplayLocation;
-
                 // Decide whether it's a start or end
                 if (_startPoint == null)
                 {
@@ -182,7 +202,6 @@ namespace DRDO
                     MessageBox.Show("Start and End already set. Click 'Stop And Clear Drawing' to reset.");
                     return;
                 }
-
                 await MyMapView.SetViewpointCenterAsync(location, 100000);
             }
             catch (Exception ex)

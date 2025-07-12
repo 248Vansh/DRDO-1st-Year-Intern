@@ -6,16 +6,26 @@
         xmlns:esri="http://schemas.esri.com/arcgis/runtime/2013"
         xmlns:local="clr-namespace:DRDO"
         mc:Ignorable="d"
-        Title="DRDO GIS Dashboard" Height="700" Width="1200"
-        Background="#FAFAFA"
+        Title="DRDO GIS Dashboard"
+        Height="700"
+        Width="1200"
         FontFamily="Segoe UI"
-        FontSize="14">
+        FontSize="14"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="SingleBorderWindow"
+        ResizeMode="CanResize">
+
+    <Window.Background>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#E3F2FD" Offset="0.0"/>
+            <GradientStop Color="#BBDEFB" Offset="1.0"/>
+        </LinearGradientBrush>
+    </Window.Background>
 
     <Window.Resources>
-        <local:MapViewModel x:Key="MapViewModel"/>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
-        <!-- Modern Button Style -->
+        <!-- 🚀 Modern Button Style -->
         <Style x:Key="ModernButton" TargetType="Button">
             <Setter Property="Background" Value="#0078D7"/>
             <Setter Property="Foreground" Value="White"/>
@@ -37,15 +47,19 @@
             </Setter>
         </Style>
 
-        <!-- Card-like Panel -->
+        <!-- 🧊 Glassy Card Style -->
         <Style x:Key="Card" TargetType="Border">
-            <Setter Property="Background" Value="White"/>
+            <Setter Property="Background">
+                <Setter.Value>
+                    <SolidColorBrush Color="White" Opacity="0.8"/>
+                </Setter.Value>
+            </Setter>
             <Setter Property="CornerRadius" Value="10"/>
             <Setter Property="Padding" Value="10"/>
             <Setter Property="Margin" Value="0,0,0,10"/>
             <Setter Property="Effect">
                 <Setter.Value>
-                    <DropShadowEffect BlurRadius="5" ShadowDepth="1" Opacity="0.2"/>
+                    <DropShadowEffect BlurRadius="5" ShadowDepth="1" Opacity="0.3"/>
                 </Setter.Value>
             </Setter>
         </Style>
@@ -111,9 +125,7 @@
         <!-- Map and Scene View -->
         <Grid Grid.Row="4">
             <esri:SceneView x:Name="MySceneView" Visibility="Collapsed" Scene="{x:Null}"/>
-            <esri:MapView x:Name="MyMapView"
-                          Map="{Binding Map, Source={StaticResource MapViewModel}}"
-                          GraphicsOverlays="{Binding GraphicsOverlays, Source={StaticResource MapViewModel}}"/>
+            <esri:MapView x:Name="MyMapView"/>
         </Grid>
     </Grid>
 </Window>
